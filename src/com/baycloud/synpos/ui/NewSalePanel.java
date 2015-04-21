@@ -1,6 +1,7 @@
 package com.baycloud.synpos.ui;
 
 import com.baycloud.synpos.od.*;
+import com.baycloud.synpos.synPOS;
 import com.baycloud.synpos.xt.*;
 
 import javax.swing.*;
@@ -526,17 +527,44 @@ public class NewSalePanel extends JPanel implements TableModelListener {
             return;
         }
 
-        CashPaymentDlg dlg = new CashPaymentDlg(parent, totalPanel.getTotal());
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        Dimension dlgSize = dlg.getPreferredSize();
-        dlg.setLocation((screenSize.width - dlgSize.width) / 2,
-                (screenSize.height - dlgSize.height) / 2);
-        dlg.pack();
-        dlg.setVisible(true);
+//        MobilePaymentDlg dlg = new MobilePaymentDlg(parent, totalPanel.getTotal());
+//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//        Dimension dlgSize = dlg.getPreferredSize();
+//        dlg.setLocation((screenSize.width - dlgSize.width) / 2,
+//                (screenSize.height - dlgSize.height) / 2);
+//        dlg.pack();
+//        dlg.setVisible(true);
+//
+//        if (dlg.getPayment() != null) {
+//            completeSale(dlg.getPayment());
+//        }
 
-        if (dlg.getPayment() != null) {
-            completeSale(dlg.getPayment());
-        }
+        final MessageDialog msgDlg = new MessageDialog(parent, "Processing",
+                "Ask customer to put their mobile device into NFC terminal.");
+
+        new Thread() {
+            public void run() {
+                try {
+                    //completeSale(payment);
+
+                    synPOS.ard.getOutputStream().write(("P:IDR " + totalPanel.getTotal() + "|indomaret@superpay:/bill/123").getBytes());
+
+                    Thread.sleep(10000);
+
+                } catch (Exception ex) {
+
+                    JOptionPane.showMessageDialog(parent,
+                            ex.getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+
+                }finally {
+                    msgDlg.setVisible(false);
+                }
+            }
+        }.start();
+
+        msgDlg.pack();
+        msgDlg.setVisible(true);
     }
 
     public void jButton7_actionPerformed(ActionEvent e) {

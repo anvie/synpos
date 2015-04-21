@@ -1,16 +1,22 @@
 package com.baycloud.synpos;
 
+import com.baycloud.synpos.od.Configuration;
+import com.baycloud.synpos.od.Station;
+import com.baycloud.synpos.od.StoreConfiguration;
 import com.baycloud.synpos.ui.*;
-import com.baycloud.synpos.od.*;
-import com.baycloud.synpos.xt.*;
-import com.baycloud.synpos.util.*;
+import com.baycloud.synpos.util.synVersion;
+import com.baycloud.synpos.xt.MyDB;
+import com.baycloud.synpos.xt.StoreDB;
+import gnu.io.*;
+import jpos.util.JposPropertiesConst;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import java.awt.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.*;
-import javax.swing.plaf.*;
-import jpos.util.JposPropertiesConst;
 
 
 /**
@@ -268,6 +274,8 @@ public class synPOS {
             station = new Station(1);
         }
 
+        setupCommPorts();
+
         LoginDialog dlg = new LoginDialog(station);
         Dimension dlgSize = dlg.getPreferredSize();
         dlg.setLocation((screenSize.width - dlgSize.width) / 2,
@@ -342,5 +350,91 @@ public class synPOS {
             syncDlg.pack();
             syncDlg.setVisible(true);
         }
+    }
+
+    public static SerialPort ard;
+
+    static void setupCommPorts(){
+        System.out.println("Setup serial ports...");
+
+        String fPathSep = System.getProperty("path.separator", ":");
+
+        ArrayList serialPorts = new ArrayList();
+        Enumeration e = CommPortIdentifier.getPortIdentifiers();
+        while (e.hasMoreElements()) {
+            CommPortIdentifier port = (CommPortIdentifier) e.nextElement();
+            if (port.getPortType() == CommPortIdentifier.PORT_SERIAL && port.getName().startsWith("/dev/ttyACM")) {
+                serialPorts.add(port.getName());
+
+                try {
+                    ard = (SerialPort)port.open("synPOS", 1000);
+                    System.out.println("Connected to port: " + port.getName());
+                    ard.setSerialPortParams(9600,
+                            SerialPort.DATABITS_8,
+                            SerialPort.STOPBITS_1,
+                            SerialPort.PARITY_NONE);
+
+                    // add event listeners
+                    ard.addEventListener(new SerialPortEventListener(){
+                        private BufferedReader input;
+
+                        @Override
+                        public void serialEvent(SerialPortEvent oEvent) {
+                            //System.out.println("Event received: " + oEvent.toString());
+                            try {
+                                switch (oEvent.getEventType() ) {
+                                    case SerialPortEvent.DATA_AVAILABLE:
+                                        if ( input == null ) {
+                                            input = new BufferedReader(
+                                                    new InputStreamReader(
+                                                            ard.getInputStream()));
+                                        }
+                                        String inputLine = input.readLine();
+                                        System.out.println(inputLine);
+                                        break;
+
+                                    default:
+                                        break;
+                                }
+                            }
+                            catch (Exception e) {
+                                System.err.println(e.toString());
+                            }
+                        }
+                    });
+                    ard.notifyOnDataAvailable(true);
+
+                } catch (PortInUseException e1) {
+                    e1.printStackTrace();
+                } catch (UnsupportedCommOperationException e1) {
+                    e1.printStackTrace();
+                } catch (TooManyListenersException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+        System.out.println(serialPorts);
+        // Now, get rid of the first one
+        StringBuffer buf = new StringBuffer();
+        for (int i = 1; i < serialPorts.size(); i++) {
+            buf.append(serialPorts.get(i));
+            buf.append(fPathSep);
+        }
+
+        //System.out.println(buf.toString());
+
+//        System.setProperty("gnu.io.rxtx.SerialPorts", buf.toString());
+//        e = CommPortIdentifier.getPortIdentifiers();
+//        int nNew = 0;
+//        while (e.hasMoreElements()) {
+//            CommPortIdentifier port = (CommPortIdentifier) e.nextElement();
+//            if (port.getPortType() == CommPortIdentifier.PORT_SERIAL) {
+//                nNew++;
+////                assertTrue("hasPort", serialPorts.contains(port.getName()));
+//                System.out.println("has port: " + port.toString());
+//            }
+//        }
+////        assertEquals("1 port removed", serialPorts.size() - 1, nNew);
+
     }
 }
