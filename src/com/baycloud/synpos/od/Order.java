@@ -61,6 +61,8 @@ public class Order {
                     payment = new CheckPayment(payId);
                 } else if (payType.equals("Credit/Debit")) {
                     payment = new CreditPayment(payId);
+                } else if (payType.equals("Mobile NFC")) {
+                    payment = new MobilePayment(payId);
                 }
 
                 int custId = rs.getInt("customers_id");

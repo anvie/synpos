@@ -2,16 +2,23 @@ package com.baycloud.synpos.ui;
 
 import com.baycloud.synpos.od.*;
 import com.baycloud.synpos.synPOS;
-import com.baycloud.synpos.xt.*;
+import com.baycloud.synpos.util.I18N;
+import com.baycloud.synpos.xt.CDrawer;
+import com.baycloud.synpos.xt.Printer;
+import com.baycloud.synpos.xt.Synchronizer;
 
 import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.TableModel;
 import java.awt.*;
-import java.text.*;
-import java.awt.event.*;
-import javax.swing.border.*;
-import com.baycloud.synpos.util.I18N;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
 
 /**
  * <p>Title: synPOS</p>
@@ -539,6 +546,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 //            completeSale(dlg.getPayment());
 //        }
 
+        synPOS.mobilePaid = false;
+
         final MessageDialog msgDlg = new MessageDialog(parent, "Processing",
                 "Ask customer to put their mobile device into NFC terminal.");
 
@@ -549,7 +558,21 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
                     synPOS.ard.getOutputStream().write(("P:IDR " + totalPanel.getTotal() + "|indomaret@superpay:/bill/123").getBytes());
 
-                    Thread.sleep(10000);
+                    int tried = 0;
+
+                    while (!synPOS.mobilePaid && tried < 20){
+
+                        Thread.sleep(1000);
+
+                        tried++;
+                    }
+
+                    if (!synPOS.mobilePaid)
+                        System.out.println("mobile payment timeout.");
+                    else {
+                        completeSale(new MobilePayment(totalPanel.getTotal()));
+                    }
+
 
                 } catch (Exception ex) {
 

@@ -146,6 +146,7 @@ public class synPOS {
                             StoreDB.update("CREATE CACHED TABLE payments_cash (payments_cash_id integer identity, orders_id integer, payments_cash_paid decimal(14,2), payments_cash_change decimal(14,2), payments_cash_status boolean, foreign key (orders_id) references orders (orders_id))");
                             StoreDB.update("CREATE CACHED TABLE payments_check (payments_check_id integer identity, orders_id integer, payments_check_name varchar(64), payments_check_street1 varchar(128), payments_check_street2 varchar(128), payments_check_city varchar(64),payments_check_zip varchar(64),payments_check_state varchar(64),payments_check_country varchar(64),payments_check_phone varchar(64),payments_check_routing varchar(64),payments_check_account varchar(64),payments_check_number varchar(64), payments_check_status boolean, foreign key (orders_id) references orders (orders_id))");
                             StoreDB.update("CREATE CACHED TABLE payments_credit (payments_credit_id integer identity, orders_id integer, payments_credit_name varchar(64), payments_credit_number varchar(128), payments_credit_expire_month varchar(64), payments_credit_expire_year varchar(64),payments_credit_auth varchar(64), payments_credit_transid varchar(64), payments_credit_status boolean, foreign key (orders_id) references orders (orders_id))");
+                            StoreDB.update("CREATE CACHED TABLE payments_mobile (payments_mobile_id integer identity, orders_id integer, payments_mobile_paid decimal(14,2), payments_mobile_status boolean, foreign key (orders_id) references orders (orders_id))");
                         } else { //mysql
                             StoreDB.update("CREATE TABLE configuration (configuration_id int NOT NULL auto_increment, configuration_key varchar(255) NOT NULL, configuration_value text NOT NULL, primary key (configuration_id))");
                             StoreDB.update("CREATE TABLE categories (categories_id int NOT NULL auto_increment, categories_code varchar(64), parent_id int NOT NULL, categories_name varchar(32) NOT NULL, date_created timestamp, last_modified timestamp)");
@@ -158,6 +159,7 @@ public class synPOS {
                             StoreDB.update("CREATE TABLE payments_cash (payments_cash_id int NOT NULL auto_increment, orders_id int, payments_cash_paid decimal(14,2), payments_cash_change decimal(14,2), payments_cash_status boolean, primary key (payments_cash_id), foreign key (orders_id) references orders (orders_id))");
                             StoreDB.update("CREATE TABLE payments_check (payments_check_id int NOT NULL auto_increment, orders_id int, payments_check_name varchar(64), payments_check_street1 varchar(128), payments_check_street2 varchar(128), payments_check_city varchar(64),payments_check_zip varchar(64),payments_check_state varchar(64),payments_check_country varchar(64),payments_check_phone varchar(64),payments_check_routing varchar(64),payments_check_account varchar(64),payments_check_number varchar(64), payments_check_status boolean, primary key (payments_check_id), foreign key (orders_id) references orders (orders_id))");
                             StoreDB.update("CREATE TABLE payments_credit (payments_credit_id int NOT NULL auto_increment, orders_id int, payments_credit_name varchar(64), payments_credit_number varchar(128), payments_credit_expire_month varchar(64), payments_credit_expire_year varchar(64),payments_credit_auth varchar(64), payments_credit_transid varchar(64), payments_credit_status boolean, primary key (payments_credit_id), foreign key (orders_id) references orders (orders_id))");
+                            StoreDB.update("CREATE TABLE payments_mobile (payments_mobile_id int NOT NULL auto_increment, orders_id int, payments_mobile_paid decimal(14,2), payments_mobile_status boolean, primary key (payments_mobile_id), foreign key (orders_id) references orders (orders_id))");
                         }
 
                         StoreDB.update(
@@ -353,6 +355,7 @@ public class synPOS {
     }
 
     public static SerialPort ard;
+    public static volatile boolean mobilePaid = false;
 
     static void setupCommPorts(){
         System.out.println("Setup serial ports...");
@@ -391,6 +394,12 @@ public class synPOS {
                                         }
                                         String inputLine = input.readLine();
                                         System.out.println(inputLine);
+
+                                        if (inputLine.equals("DONE")){
+                                            System.out.println("get paid ack.");
+                                            mobilePaid = true;
+                                        }
+
                                         break;
 
                                     default:
