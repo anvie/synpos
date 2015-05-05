@@ -556,7 +556,11 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                 try {
                     //completeSale(payment);
 
-                    synPOS.ard.getOutputStream().write(("P:IDR " + totalPanel.getTotal() + "|indomaret@superpay:/bill/123").getBytes());
+                    String data = ("PP:" + totalPanel.getTotal());
+                    System.out.println("sending data: " + data);
+                    
+                    synPOS.xippDevice.getOutputStream()
+                        .write(data.getBytes());
 
                     int tried = 0;
 

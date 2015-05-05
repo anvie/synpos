@@ -354,23 +354,26 @@ public class synPOS {
         }
     }
 
-    public static SerialPort ard;
+    public static SerialPort xippDevice;
     public static volatile boolean mobilePaid = false;
 
     static void setupCommPorts(){
-        System.out.println("Setup serial ports...");
+        System.out.println("Scanning serial ports...");
 
         String fPathSep = System.getProperty("path.separator", ":");
 
-        ArrayList serialPorts = new ArrayList();
+        final ArrayList serialPorts = new ArrayList();
         Enumeration e = CommPortIdentifier.getPortIdentifiers();
+        int elementCounter = 0;
         while (e.hasMoreElements()) {
-            CommPortIdentifier port = (CommPortIdentifier) e.nextElement();
-            if (port.getPortType() == CommPortIdentifier.PORT_SERIAL && port.getName().startsWith("/dev/ttyACM")) {
-                serialPorts.add(port.getName());
+            final CommPortIdentifier port = (CommPortIdentifier) e.nextElement();
+            System.out.println(++elementCounter + ". " + port.getName() + ", type: " + port.getPortType());
+            if (port.getPortType() == CommPortIdentifier.PORT_SERIAL && port.getName().startsWith("/dev/tty")) {
+                
+                //serialPorts.add(port.getName());
 
                 try {
-                    ard = (SerialPort)port.open("synPOS", 1000);
+                    final SerialPort ard = (SerialPort)port.open("synPOS", 1000);
                     System.out.println("Connected to port: " + port.getName());
                     ard.setSerialPortParams(9600,
                             SerialPort.DATABITS_8,
@@ -398,6 +401,10 @@ public class synPOS {
                                         if (inputLine.equals("DONE")){
                                             System.out.println("get paid ack.");
                                             mobilePaid = true;
+                                        } else if (inputLine.equals("XIPP")){
+                                            serialPorts.add(port.getName());
+                                            xippDevice = ard;
+                                            System.out.println("got device from ping: " + port.getName());
                                         }
 
                                         break;
@@ -412,6 +419,11 @@ public class synPOS {
                         }
                     });
                     ard.notifyOnDataAvailable(true);
+                    
+                    // ping
+                    Thread.sleep(2000);
+                    ard.getOutputStream().write("XIPP".getBytes());
+                    Thread.sleep(5000);
 
                 } catch (PortInUseException e1) {
                     e1.printStackTrace();
@@ -419,9 +431,16 @@ public class synPOS {
                     e1.printStackTrace();
                 } catch (TooManyListenersException e1) {
                     e1.printStackTrace();
+                } catch (java.io.IOException e1) {
+                    e1.printStackTrace();
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
                 }
+
+                
             }
         }
+        
         System.out.println(serialPorts);
         // Now, get rid of the first one
         StringBuffer buf = new StringBuffer();
