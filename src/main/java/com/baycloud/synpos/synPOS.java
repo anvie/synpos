@@ -387,7 +387,7 @@ public class synPOS {
 
                         @Override
                         public void serialEvent(SerialPortEvent oEvent) {
-                            //System.out.println("Event received: " + oEvent.toString());
+                            System.out.println("Event received: " + oEvent.toString());
                             try {
                                 switch (oEvent.getEventType() ) {
                                     case SerialPortEvent.DATA_AVAILABLE:
@@ -397,13 +397,13 @@ public class synPOS {
                                                             ard.getInputStream()));
                                         }
                                         String inputLine = input.readLine();
-                                        System.out.println(inputLine);
+                                        System.out.println("got data from terminal: " + inputLine);
 
                                         if (inputLine.startsWith("DONE|")){
                                             System.out.println("get paid ack.");
                                             mobilePaid = true;
                                             String[] s = inputLine.split("\\|");
-                                            lastXippPaidAccountAddress = s[1];
+                                            lastXippPaidAccountAddress = s[2];
                                         } else if (inputLine.equals("XIPP")){
                                             serialPorts.add(port.getName());
                                             xippDevice = ard;

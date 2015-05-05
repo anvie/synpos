@@ -589,7 +589,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
                     int tried = 0;
 
-                    while (!synPOS.mobilePaid && tried < 20){
+                    while (!synPOS.mobilePaid && tried < 40){
 
                         Thread.sleep(1000);
 
