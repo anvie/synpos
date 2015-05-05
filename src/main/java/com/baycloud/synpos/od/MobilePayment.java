@@ -19,9 +19,11 @@ import java.sql.ResultSet;
  * @version 0.9.1
  */
 public class MobilePayment implements Payment {
+    private String fromAddress;
     private double paid;
 
-    public MobilePayment(double paid) {
+    public MobilePayment(String fromAddress, double paid) {
+        this.fromAddress = fromAddress;
         this.paid = paid;
     }
 
@@ -43,6 +45,7 @@ public class MobilePayment implements Payment {
     public double getPaid() {
         return paid;
     }
+    public String getFromAddress(){ return fromAddress; }
 
     public String getPaymentType() {
         return "Mobile NFC";

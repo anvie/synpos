@@ -356,6 +356,7 @@ public class synPOS {
 
     public static SerialPort xippDevice;
     public static volatile boolean mobilePaid = false;
+    public static volatile String lastXippPaidAccountAddress = "";
 
     static void setupCommPorts(){
         System.out.println("Scanning serial ports...");
@@ -398,9 +399,11 @@ public class synPOS {
                                         String inputLine = input.readLine();
                                         System.out.println(inputLine);
 
-                                        if (inputLine.equals("DONE")){
+                                        if (inputLine.startsWith("DONE|")){
                                             System.out.println("get paid ack.");
                                             mobilePaid = true;
+                                            String[] s = inputLine.split("\\|");
+                                            lastXippPaidAccountAddress = s[1];
                                         } else if (inputLine.equals("XIPP")){
                                             serialPorts.add(port.getName());
                                             xippDevice = ard;

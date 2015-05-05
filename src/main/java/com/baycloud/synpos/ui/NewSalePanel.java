@@ -2,6 +2,7 @@ package com.baycloud.synpos.ui;
 
 import com.baycloud.synpos.od.*;
 import com.baycloud.synpos.synPOS;
+import com.baycloud.synpos.util.HTTP;
 import com.baycloud.synpos.util.I18N;
 import com.baycloud.synpos.xt.CDrawer;
 import com.baycloud.synpos.xt.Printer;
@@ -300,7 +301,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         totalPanel.repaint();
     }
 
-    void completeSale(Payment payment) {
+    void completeSale(Payment payment){
         try {
             TableModel model = jTable2.getModel();
             int rowCount = model.getRowCount();
@@ -326,25 +327,25 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                             totalPanel.getSalesTax(), payment,
                                             user.getId(), customer);
 
-            if (order != null) {
+            if (order != null){
                 newSale();
 
-                if (payment.getPaymentType().equals("Cash")) {
+                if (payment.getPaymentType().equals("Cash")){
                     CDrawer.open();
                 }
 
                 Printer.print(order);
 
-                if (payment.getPaymentType().equals("Credit/Debit")) {
+                if (payment.getPaymentType().equals("Credit/Debit")){
                     Printer.print(order, "customer");
                     Printer.print(order, "store");
                 }
 
-                if (Synchronizer.getMode() == Synchronizer.REAL_SYNC) {
+                if (Synchronizer.getMode() == Synchronizer.REAL_SYNC){
                     order.sync();
                 }
 
-                if (payment.getPaymentType().equals("Cash")) {
+                if (payment.getPaymentType().equals("Cash")){
                     while (!CDrawer.close()) {
                         try {
                             JOptionPane.showMessageDialog(parent,
@@ -357,15 +358,39 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                         }
                     }
                 }
-            } else {
+
+                if (payment.getPaymentType().equals("Mobile NFC")){
+
+                    // send API call ke pg
+                    MobilePayment mobilePayment = (MobilePayment)payment;
+
+                    //@TODO(robin): fix this (don't hard code).
+                    String meAddress = "indomaret@superpay";
+
+                    String content = "{\"src\":\"" + mobilePayment.getFromAddress() +  "\"," +
+                            "\"dst\":\"" + meAddress + "\"," +
+                            "\"amount\":" + mobilePayment.getPaid() + "," +
+                            "\"ts\":" + System.currentTimeMillis() + "," +
+                            "\"key\":\"RESERVED\"," +
+                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " via Mobile NFC\"}";
+
+                    String response = HTTP.post("http://www.mega-pay.net/api/req_for_transfer",
+                            content, "json", null, null);
+
+                    System.out.println("response from PS server: ");
+                    System.out.println(response);
+
+                }
+
+            }else{
                 JOptionPane.showMessageDialog(parent,
-                                              I18N.getMessageString(
-                        "Order processing error."),
-                                              I18N.getLabelString("Error"),
-                                              JOptionPane.ERROR_MESSAGE);
+                        I18N.getMessageString(
+                                "Order processing error."),
+                        I18N.getLabelString("Error"),
+                        JOptionPane.ERROR_MESSAGE);
 
             }
-        } catch (Exception ex) {
+        }catch (Exception ex){
             JOptionPane.showMessageDialog(parent,
                                           ex.getMessage(),
                                           I18N.getLabelString("Error"),
@@ -574,7 +599,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     if (!synPOS.mobilePaid)
                         System.out.println("mobile payment timeout.");
                     else {
-                        completeSale(new MobilePayment(totalPanel.getTotal()));
+                        System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
+                        completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));
                     }
 
 

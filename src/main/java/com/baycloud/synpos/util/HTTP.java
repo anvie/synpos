@@ -38,6 +38,9 @@ public class HTTP {
         } else if (type.equals("form")) {
             urlConn.setRequestProperty("Content-Type",
                                        "application/x-www-form-urlencoded");
+        } else if (type.equals("json")) {
+            urlConn.setRequestProperty("Content-Type",
+                                       "application/json");
         }
 
         if (username != null && password != null) {
