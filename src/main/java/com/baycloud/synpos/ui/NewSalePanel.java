@@ -558,20 +558,18 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
             return;
         }
+        
+        if (synPOS.xippDevice == null){
+            JOptionPane.showMessageDialog(parent,
+                    I18N.getMessageString("No NFC terminal device detected."),
+                    I18N.getLabelString("Error"),
+                    JOptionPane.ERROR_MESSAGE);
 
-//        MobilePaymentDlg dlg = new MobilePaymentDlg(parent, totalPanel.getTotal());
-//        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-//        Dimension dlgSize = dlg.getPreferredSize();
-//        dlg.setLocation((screenSize.width - dlgSize.width) / 2,
-//                (screenSize.height - dlgSize.height) / 2);
-//        dlg.pack();
-//        dlg.setVisible(true);
-//
-//        if (dlg.getPayment() != null) {
-//            completeSale(dlg.getPayment());
-//        }
+            return;
+        }
 
-        synPOS.mobilePaid = false;
+
+        synPOS.mobilePaymentState = 0;
 
         final MessageDialog msgDlg = new MessageDialog(parent, "Processing",
                 "Ask customer to put their mobile device into NFC terminal.");
@@ -589,23 +587,56 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
                     int tried = 0;
 
-                    while (!synPOS.mobilePaid && tried < 40){
+                    while (synPOS.mobilePaymentState==0 && tried < 40){
 
                         Thread.sleep(1000);
 
                         tried++;
                     }
 
-                    if (!synPOS.mobilePaid)
+                    if (synPOS.mobilePaymentState == 0){
                         System.out.println("mobile payment timeout.");
-                    else {
-                        System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
-                        completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));
+                    }else if (synPOS.mobilePaymentState == 1) {
+                        msgDlg.setVisible(false);
+                        final MessageDialog authDlg = new MessageDialog(parent, "Processing",
+                                "Waiting for authorization..");
+                    
+                        new Thread() {
+                            public void run() {
+                                
+                                int tried = 0;
+                                while (synPOS.mobilePaymentState==1 && tried < 40){
+
+                                    try {
+                                        Thread.sleep(1000);
+                                    }catch(java.lang.InterruptedException e){
+                                        
+                                    }
+
+                                    tried++;
+                                }
+                                
+                                if (synPOS.mobilePaymentState == 2) {
+                                    authDlg.setVisible(false);
+                                    System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
+                                    completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));
+                                }
+                                
+                            }
+                        }.start();
+                    
+                        authDlg.pack();
+                        authDlg.setVisible(true);
+                        
                     }
+                    
+                    
 
 
                 } catch (Exception ex) {
 
+                    ex.printStackTrace();
+                    
                     JOptionPane.showMessageDialog(parent,
                             ex.getMessage(),
                             "Error", JOptionPane.ERROR_MESSAGE);

@@ -355,7 +355,7 @@ public class synPOS {
     }
 
     public static SerialPort xippDevice;
-    public static volatile boolean mobilePaid = false;
+    public static volatile int mobilePaymentState = 0;
     public static volatile String lastXippPaidAccountAddress = "";
 
     static void setupCommPorts(){
@@ -387,31 +387,33 @@ public class synPOS {
 
                         @Override
                         public void serialEvent(SerialPortEvent oEvent) {
-                            System.out.println("Event received: " + oEvent.toString());
                             try {
                                 switch (oEvent.getEventType() ) {
                                     case SerialPortEvent.DATA_AVAILABLE:
+                                    synchronized(this) {
                                         if ( input == null ) {
                                             input = new BufferedReader(
                                                     new InputStreamReader(
                                                             ard.getInputStream()));
                                         }
                                         String inputLine = input.readLine();
-                                        System.out.println("got data from terminal: " + inputLine);
+                                        System.out.println("DV: " + inputLine);
 
-                                        if (inputLine.startsWith("DONE|")){
-                                            System.out.println("got paid ack.");
-                                            mobilePaid = true;
+                                        if (inputLine.startsWith("SUCCESS")){
+                                            System.out.println("get paid ack.");
+                                            mobilePaymentState = 1;
+                                        }else if (inputLine.startsWith("DONE|")){
+                                            mobilePaymentState = 2;
                                             String[] s = inputLine.split("\\|");
                                             lastXippPaidAccountAddress = s[2];
                                         } else if (inputLine.equals("XIPP")){
                                             serialPorts.add(port.getName());
                                             xippDevice = ard;
-                                            System.out.println("got device from ping: " + port.getName());
+                                            System.out.println("DV: " + port.getName());
                                         }
 
                                         break;
-
+                                        }
                                     default:
                                         break;
                                 }
