@@ -400,7 +400,7 @@ public class synPOS {
                                         System.out.println(inputLine);
 
                                         if (inputLine.startsWith("DONE|")){
-                                            System.out.println("get paid ack.");
+                                            System.out.println("got paid ack.");
                                             mobilePaid = true;
                                             String[] s = inputLine.split("\\|");
                                             lastXippPaidAccountAddress = s[1];
