@@ -539,7 +539,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension dlgSize = dlg.getPreferredSize();
         dlg.setLocation((screenSize.width - dlgSize.width) / 2,
-                        (screenSize.height - dlgSize.height) / 2);
+                (screenSize.height - dlgSize.height) / 2);
         dlg.pack();
         dlg.setVisible(true);
 
@@ -603,24 +603,29 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     
                         new Thread() {
                             public void run() {
-                                
+
+
                                 int tried = 0;
-                                while ((synPOS.mobilePaymentState==synPOS.paymentState.STATE_BEGIN || synPOS.mobilePaymentState==synPOS.paymentState.STATE_RECEIVING) && tried < 40){
+                                while (!(synPOS.mobilePaymentState!=synPOS.paymentState.STATE_BEGIN && synPOS.mobilePaymentState!=synPOS.paymentState.STATE_RECEIVING) && tried < 40){
 
                                     try {
                                         Thread.sleep(1000);
                                     }catch(java.lang.InterruptedException e){
-                                        
-                                    }
 
+                                    }
+                                    System.out.println("waiting... state: " + synPOS.mobilePaymentState);
                                     tried++;
                                 }
-                                
+
                                 if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END) {
                                     authDlg.setVisible(false);
+                                    synPOS.mobilePaymentState = synPOS.paymentState.STATE_IDLE;
+
                                     System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
                                     completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));
+
                                 }
+
                                 
                             }
                         }.start();

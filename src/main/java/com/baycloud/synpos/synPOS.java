@@ -364,6 +364,7 @@ public class synPOS {
     }
 
     public static SerialPort xippDevice;
+//    public static final Object locker = new Object();
     public static volatile paymentState mobilePaymentState = paymentState.STATE_IDLE;
     public static volatile String lastXippPaidAccountAddress = "";
 
@@ -406,7 +407,7 @@ public class synPOS {
                             try {
                                 switch (oEvent.getEventType() ) {
                                     case SerialPortEvent.DATA_AVAILABLE:
-                                        synchronized(this) {
+
                                             if ( input == null ) {
                                                 input = new BufferedReader(new InputStreamReader(ardInputStream));
                                             }
@@ -444,14 +445,14 @@ public class synPOS {
                                                 mobilePaymentState = paymentState.STATE_RECEIVING;
                                                 fromDeviceBuffer.append(inputLine);
                                             }
-                                            
-                                            if (mobilePaymentState == paymentState.STATE_END){
-                                                mobilePaymentState = paymentState.STATE_IDLE;
-                                            }
+
+//                                            if (mobilePaymentState == paymentState.STATE_END){
+//                                                mobilePaymentState = paymentState.STATE_IDLE;
+//                                            }
 
 
                                             break;
-                                        }
+
                                     default:
                                         System.out.println("GOT EVENT: " + oEvent.getEventType());
                                         break;
