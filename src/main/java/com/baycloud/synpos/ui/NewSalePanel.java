@@ -569,7 +569,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         }
 
 
-        synPOS.mobilePaymentState = 0;
+        synPOS.mobilePaymentState = synPOS.paymentState.STATE_INIT;
 
         final MessageDialog msgDlg = new MessageDialog(parent, "Processing",
                 "Ask customer to put their mobile device into NFC terminal.");
@@ -587,16 +587,16 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
                     int tried = 0;
 
-                    while (synPOS.mobilePaymentState==0 && tried < 40){
+                    while (synPOS.mobilePaymentState == synPOS.paymentState.STATE_INIT && tried < 40){
 
                         Thread.sleep(1000);
 
                         tried++;
                     }
 
-                    if (synPOS.mobilePaymentState == 0){
+                    if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_INIT){
                         System.out.println("mobile payment timeout.");
-                    }else if (synPOS.mobilePaymentState == 1) {
+                    }else if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_BEGIN || synPOS.mobilePaymentState == synPOS.paymentState.STATE_RECEIVING) {
                         msgDlg.setVisible(false);
                         final MessageDialog authDlg = new MessageDialog(parent, "Processing",
                                 "Waiting for authorization..");
@@ -605,7 +605,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                             public void run() {
                                 
                                 int tried = 0;
-                                while (synPOS.mobilePaymentState==1 && tried < 40){
+                                while ((synPOS.mobilePaymentState==synPOS.paymentState.STATE_BEGIN || synPOS.mobilePaymentState==synPOS.paymentState.STATE_RECEIVING) && tried < 40){
 
                                     try {
                                         Thread.sleep(1000);
@@ -616,7 +616,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                     tried++;
                                 }
                                 
-                                if (synPOS.mobilePaymentState == 2) {
+                                if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END) {
                                     authDlg.setVisible(false);
                                     System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
                                     completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));

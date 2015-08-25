@@ -15,6 +15,7 @@ import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.*;
 
@@ -354,11 +355,24 @@ public class synPOS {
         }
     }
 
+    public enum paymentState {
+        STATE_IDLE,
+        STATE_INIT,
+        STATE_BEGIN,
+        STATE_RECEIVING,
+        STATE_END
+    }
+
     public static SerialPort xippDevice;
-    public static volatile int mobilePaymentState = 0;
+    public static volatile paymentState mobilePaymentState = paymentState.STATE_IDLE;
     public static volatile String lastXippPaidAccountAddress = "";
 
+    public static volatile StringBuffer fromDeviceBuffer;
+
     static void setupCommPorts(){
+
+        fromDeviceBuffer = new StringBuffer();
+
         System.out.println("Scanning serial ports...");
 
         String fPathSep = System.getProperty("path.separator", ":");
@@ -375,6 +389,8 @@ public class synPOS {
 
                 try {
                     final SerialPort ard = (SerialPort)port.open("synPOS", 1000);
+                    final InputStream ardInputStream = ard.getInputStream();
+
                     System.out.println("Connected to port: " + port.getName());
                     ard.setSerialPortParams(9600,
                             SerialPort.DATABITS_8,
@@ -390,36 +406,60 @@ public class synPOS {
                             try {
                                 switch (oEvent.getEventType() ) {
                                     case SerialPortEvent.DATA_AVAILABLE:
-                                    synchronized(this) {
-                                        if ( input == null ) {
-                                            input = new BufferedReader(
-                                                    new InputStreamReader(
-                                                            ard.getInputStream()));
-                                        }
-                                        String inputLine = input.readLine();
-                                        System.out.println("DV: " + inputLine);
+                                        synchronized(this) {
+                                            if ( input == null ) {
+                                                input = new BufferedReader(new InputStreamReader(ardInputStream));
+                                            }
+                                            String inputLine = input.readLine();
+                                            System.out.println("DV: " + inputLine);
 
-                                        if (inputLine.startsWith("SUCCESS")){
-                                            System.out.println("get paid ack.");
-                                            mobilePaymentState = 1;
-                                        }else if (inputLine.startsWith("DONE|")){
-                                            mobilePaymentState = 2;
-                                            String[] s = inputLine.split("\\|");
-                                            lastXippPaidAccountAddress = s[2];
-                                        } else if (inputLine.equals("XIPP")){
-                                            serialPorts.add(port.getName());
-                                            xippDevice = ard;
-                                            System.out.println("DV: " + port.getName());
-                                        }
+                                            if (Objects.equals(inputLine, "-----BEGIN-----")) {
+                                                if(!(mobilePaymentState == paymentState.STATE_INIT || mobilePaymentState == paymentState.STATE_IDLE)){
+                                                    System.err.println("Invalid payment state, expected: INIT/IDLE");
+                                                    return;
+                                                }
 
-                                        break;
+                                                mobilePaymentState = paymentState.STATE_BEGIN;
+
+                                                fromDeviceBuffer = new StringBuffer();
+                                                fromDeviceBuffer.append(inputLine);
+                                            }else if (Objects.equals(inputLine, "-----END-----")) {
+                                                mobilePaymentState = paymentState.STATE_END;
+                                                fromDeviceBuffer.append(inputLine);
+
+                                                System.out.println("gathered data: " + fromDeviceBuffer.toString());
+
+    //                                        }else if (inputLine.startsWith("SUCCESS")){
+    //                                            System.out.println("get paid ack.");
+    //                                            mobilePaymentState = 1;
+    //                                        }else if (inputLine.startsWith("DONE|")){
+    //                                            mobilePaymentState = 2;
+    //                                            String[] s = inputLine.split("\\|");
+    //                                            lastXippPaidAccountAddress = s[2];
+                                            } else if (inputLine.equals("XIPP")){
+                                                serialPorts.add(port.getName());
+                                                xippDevice = ard;
+                                                System.out.println("DV: " + port.getName());
+                                            }else if (mobilePaymentState == paymentState.STATE_BEGIN || mobilePaymentState == paymentState.STATE_RECEIVING){
+                                                mobilePaymentState = paymentState.STATE_RECEIVING;
+                                                fromDeviceBuffer.append(inputLine);
+                                            }
+                                            
+                                            if (mobilePaymentState == paymentState.STATE_END){
+                                                mobilePaymentState = paymentState.STATE_IDLE;
+                                            }
+
+
+                                            break;
                                         }
                                     default:
+                                        System.out.println("GOT EVENT: " + oEvent.getEventType());
                                         break;
                                 }
                             }
                             catch (Exception e) {
                                 System.err.println(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     });
