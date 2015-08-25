@@ -435,14 +435,20 @@ public class synPOS {
 
                                                 String[] s = finalData.split("\\|");
 
-                                                lastXippPaidAccountAddress = s[1];
-                                                lastSignature = s[2];
-                                                lastTimestamp = Long.parseLong(s[3].replaceAll("\\^END.+", ""));
+                                                if (s.length > 2){
+                                                    lastXippPaidAccountAddress = s[1];
+                                                    lastSignature = s[2];
+                                                    lastTimestamp = Long.parseLong(s[3].replaceAll("\\^END.+", ""));
 
-                                                System.out.println("parsed:");
-                                                System.out.println("account: " + lastXippPaidAccountAddress);
-                                                System.out.println("signature: " + lastSignature);
-                                                System.out.println("timestamp: " + lastTimestamp);
+                                                    System.out.println("parsed:");
+                                                    System.out.println("account: " + lastXippPaidAccountAddress);
+                                                    System.out.println("signature: " + lastSignature);
+                                                    System.out.println("timestamp: " + lastTimestamp);
+                                                }else{
+                                                    System.err.println("invalid response array, expected > 2, got: " + s.length);
+                                                }
+
+
 
 
 

@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
+import java.util.Random;
 
 /**
  * <p>Title: synPOS</p>
@@ -301,8 +302,14 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         totalPanel.repaint();
     }
 
+    // @TODO(robin): jangan taruh di sini
+    public static int randInt(int min, int max) {
+        Random rand = new Random();
+        return rand.nextInt((max - min) + 1) + min;
+    }
+
     //@TODO(robin): fix this (don't hard code).
-    private static String meAddress = "indomaret@superpay:/order/2194";
+    private static String meAddress = "indomaret@superpay:/order/" + randInt(100, 9000);
 
     void completeSale(Payment payment){
         try {
