@@ -367,6 +367,8 @@ public class synPOS {
 //    public static final Object locker = new Object();
     public static volatile paymentState mobilePaymentState = paymentState.STATE_IDLE;
     public static volatile String lastXippPaidAccountAddress = "";
+    public static volatile String lastSignature = "";
+    public static volatile String lastTimestamp = "";
 
     public static volatile StringBuffer fromDeviceBuffer;
 
@@ -428,7 +430,21 @@ public class synPOS {
                                                 mobilePaymentState = paymentState.STATE_END;
                                                 fromDeviceBuffer.append(inputLine);
 
-                                                System.out.println("gathered data: " + fromDeviceBuffer.toString());
+                                                String finalData = fromDeviceBuffer.toString();
+                                                System.out.println("gathered data: " + finalData);
+
+                                                String[] s = finalData.split("\\|");
+
+                                                lastXippPaidAccountAddress = s[1];
+                                                lastSignature = s[2];
+                                                lastTimestamp = s[3].replaceAll("\\^END.+", "");
+
+                                                System.out.println("parsed:");
+                                                System.out.println("account: " + lastXippPaidAccountAddress);
+                                                System.out.println("signature: " + lastSignature);
+                                                System.out.println("timestamp: " + lastTimestamp);
+
+
 
     //                                        }else if (inputLine.startsWith("SUCCESS")){
     //                                            System.out.println("get paid ack.");
