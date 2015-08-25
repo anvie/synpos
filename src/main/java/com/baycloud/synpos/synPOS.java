@@ -368,7 +368,7 @@ public class synPOS {
     public static volatile paymentState mobilePaymentState = paymentState.STATE_IDLE;
     public static volatile String lastXippPaidAccountAddress = "";
     public static volatile String lastSignature = "";
-    public static volatile String lastTimestamp = "";
+    public static volatile long lastTimestamp = 0L;
 
     public static volatile StringBuffer fromDeviceBuffer;
 
@@ -437,7 +437,7 @@ public class synPOS {
 
                                                 lastXippPaidAccountAddress = s[1];
                                                 lastSignature = s[2];
-                                                lastTimestamp = s[3].replaceAll("\\^END.+", "");
+                                                lastTimestamp = Long.parseLong(s[3].replaceAll("\\^END.+", ""));
 
                                                 System.out.println("parsed:");
                                                 System.out.println("account: " + lastXippPaidAccountAddress);

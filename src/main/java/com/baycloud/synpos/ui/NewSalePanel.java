@@ -301,6 +301,9 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         totalPanel.repaint();
     }
 
+    //@TODO(robin): fix this (don't hard code).
+    private static String meAddress = "indomaret@superpay:/order/2194";
+
     void completeSale(Payment payment){
         try {
             TableModel model = jTable2.getModel();
@@ -364,15 +367,19 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     // send API call ke pg
                     MobilePayment mobilePayment = (MobilePayment)payment;
 
-                    //@TODO(robin): fix this (don't hard code).
-                    String meAddress = "indomaret@superpay";
+
+
+                    String amountStr = String.format("%.02f", mobilePayment.getPaid());
 
                     String content = "{\"src\":\"" + mobilePayment.getFromAddress() +  "\"," +
                             "\"dst\":\"" + meAddress + "\"," +
-                            "\"amount\":" + mobilePayment.getPaid() + "," +
-                            "\"ts\":" + System.currentTimeMillis() + "," +
-                            "\"key\":\"RESERVED\"," +
+                            "\"amount\":" + amountStr + "," +
+                            "\"ts\":" + mobilePayment.getTimestamp() + "," +
+                            "\"key\":\"" + mobilePayment.getSignature() + "\"," +
                             "\"desc\":\"from " + mobilePayment.getFromAddress() + " via Mobile NFC\"}";
+
+                    System.out.println("data to send to server:");
+                    System.out.println(content);
 
                     String response = HTTP.post("http://www.mega-pay.net/api/req_for_transfer",
                             content, "json", null, null);
@@ -579,8 +586,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                 try {
                     //completeSale(payment);
 
-                    String data = ("PP:" + totalPanel.getTotal());
-                    System.out.println("sending data: " + data);
+                    String data = String.format("PP:%.02f|%s", totalPanel.getTotal(), meAddress.trim()).trim();
+                    System.out.println("sending data: " + data.trim());
                     
                     synPOS.xippDevice.getOutputStream()
                         .write(data.getBytes());
@@ -622,7 +629,11 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                     synPOS.mobilePaymentState = synPOS.paymentState.STATE_IDLE;
 
                                     System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
-                                    completeSale(new MobilePayment(synPOS.lastXippPaidAccountAddress, totalPanel.getTotal()));
+
+                                    MobilePayment mobilePayment = new MobilePayment(synPOS.lastXippPaidAccountAddress,
+                                            totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp);
+
+                                    completeSale(mobilePayment);
 
                                 }
 

@@ -21,10 +21,14 @@ import java.sql.ResultSet;
 public class MobilePayment implements Payment {
     private String fromAddress;
     private double paid;
+    private String signature;
+    private long timestamp;
 
-    public MobilePayment(String fromAddress, double paid) {
+    public MobilePayment(String fromAddress, double paid, String signature, long timestamp) {
         this.fromAddress = fromAddress;
         this.paid = paid;
+        this.signature = signature;
+        this.timestamp = timestamp;
     }
 
     public MobilePayment(int payId) {
@@ -64,5 +68,21 @@ public class MobilePayment implements Payment {
         }
 
         return -1;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }
