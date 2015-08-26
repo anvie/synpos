@@ -653,7 +653,6 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         new Thread() {
             public void run() {
                 try {
-                    //completeSale(payment);
 
                     String dstAddress = meAddress + ":/order/" + txCode;
 
