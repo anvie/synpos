@@ -435,7 +435,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                         return new CompleteSaleResult(0, "");
                     }else{
 
-                        Pattern re = Pattern.compile("info\": ?\"(.*)");
+                        Pattern re = Pattern.compile("info\": ?\"(.*?)");
                         Matcher matcher = re.matcher(response);
 
                         if (matcher.find()){
