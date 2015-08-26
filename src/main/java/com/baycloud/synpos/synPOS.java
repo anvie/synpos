@@ -390,6 +390,9 @@ public class synPOS {
                 
                 //serialPorts.add(port.getName());
 
+                if (port.getName().equals("/dev/ttyS0"))
+                    continue;
+
                 try {
                     final SerialPort ard = (SerialPort)port.open("synPOS", 1000);
                     final InputStream ardInputStream = ard.getInputStream();
