@@ -21,6 +21,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.text.NumberFormat;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * <p>Title: synPOS</p>
@@ -313,7 +315,32 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     //@TODO(robin): fix this (don't hard code).
     private static String meAddress = "indomaret@superpay:/order/" + randInt(100, 9000);
 
-    boolean completeSale(Payment payment){
+
+    class CompleteSaleResult {
+        private int errorCode;
+        private String desc;
+
+        public CompleteSaleResult(int errorCode, String desc){
+            this.errorCode = errorCode;
+            this.desc = desc;
+        }
+
+        public int getErrorCode() {
+            return errorCode;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public boolean isSuccess(){
+            return this.errorCode == 0;
+        }
+
+
+    }
+
+    CompleteSaleResult completeSale(Payment payment){
         try {
             TableModel model = jTable2.getModel();
             int rowCount = model.getRowCount();
@@ -405,7 +432,16 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 //                                I18N.getLabelString("SUCCESS"),
 //                                JOptionPane.INFORMATION_MESSAGE);
 
-                        return true;
+                        return new CompleteSaleResult(0, "");
+                    }else{
+
+                        Pattern re = Pattern.compile("info\": ?\"(.*)");
+                        Matcher matcher = re.matcher(response);
+
+                        if (matcher.find()){
+                            return new CompleteSaleResult(502, matcher.group(1));
+                        }
+
                     }
 
                 }
@@ -426,7 +462,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
         }
 
-        return false;
+        return new CompleteSaleResult(500, "Internal error");
     }
 
     void newSale() {
@@ -637,43 +673,76 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
 
                                 int tried = 0;
-                                while (!(synPOS.mobilePaymentState!=synPOS.paymentState.STATE_BEGIN && synPOS.mobilePaymentState!=synPOS.paymentState.STATE_RECEIVING) && tried < 40){
+                                while (!(synPOS.mobilePaymentState!=synPOS.paymentState.STATE_BEGIN && synPOS.mobilePaymentState!=synPOS.paymentState.STATE_RECEIVING) && tried < 10){
 
                                     try {
                                         Thread.sleep(1000);
-                                    }catch(java.lang.InterruptedException e){
+                                    }catch(InterruptedException e){
 
                                     }
                                     System.out.println("waiting... state: " + synPOS.mobilePaymentState);
                                     tried++;
                                 }
 
-                                if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END) {
+                                if (tried >= 10 || synPOS.mobilePaymentState == synPOS.paymentState.STATE_BEGIN){
+                                    System.out.println("TIMEOUT");
 
-                                    synPOS.mobilePaymentState = synPOS.paymentState.STATE_IDLE;
+                                    authDlg.setTitle("ERROR");
+                                    authDlg.textContent.setText("CANNOT PROCESS PAYMENT");
+                                    authDlg.setIcon("images/icon-error.png");
 
-                                    System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
-
-                                    MobilePayment mobilePayment = new MobilePayment(synPOS.lastXippPaidAccountAddress,
-                                            totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp);
-
-                                    if (completeSale(mobilePayment)){
-
-                                        authDlg.setTitle("SUCCESS");
-                                        authDlg.setIcon("images/button-check_green.png");
-                                        authDlg.textContent.setText("PAYMENT SUCCESS");
-
-                                        try {
-                                            Thread.sleep(4000);
-                                        } catch (InterruptedException e1) {
-                                            e1.printStackTrace();
-                                        }
-
-                                        authDlg.setVisible(false);
-
+                                    try {
+                                        Thread.sleep(4000);
+                                    } catch (InterruptedException e1) {
+                                        e1.printStackTrace();
                                     }
 
+                                    authDlg.setVisible(false);
+
+                                }else{
+                                    if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END) {
+
+                                        synPOS.mobilePaymentState = synPOS.paymentState.STATE_IDLE;
+
+                                        System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
+
+                                        MobilePayment mobilePayment = new MobilePayment(synPOS.lastXippPaidAccountAddress,
+                                                totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp);
+
+                                        CompleteSaleResult rv = completeSale(mobilePayment);
+
+                                        if (rv.isSuccess()){
+
+                                            authDlg.setTitle("SUCCESS");
+                                            authDlg.textContent.setText("PAYMENT SUCCESS");
+                                            authDlg.setIcon("images/button-check_green.png");
+
+                                            try {
+                                                Thread.sleep(4000);
+                                            } catch (InterruptedException e1) {
+                                                e1.printStackTrace();
+                                            }
+
+                                            authDlg.setVisible(false);
+
+                                        }else{
+                                            authDlg.setTitle("ERROR");
+                                            authDlg.textContent.setText(rv.getDesc());
+                                            authDlg.setIcon("images/icon-warning.png");
+
+                                            try {
+                                                Thread.sleep(4000);
+                                            } catch (InterruptedException e1) {
+                                                e1.printStackTrace();
+                                            }
+
+                                            authDlg.setVisible(false);
+                                        }
+
+                                    }
                                 }
+
+
 
                                 
                             }
