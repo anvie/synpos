@@ -277,6 +277,9 @@ public class synPOS {
             station = new Station(1);
         }
 
+//        MessageDialog msgd = new MessageDialog(null, "Nyoba", "saja");
+//        msgd.setVisible(true);
+
         setupCommPorts();
 
         LoginDialog dlg = new LoginDialog(station);
@@ -374,6 +377,7 @@ public class synPOS {
 
     static void setupCommPorts(){
 
+
         fromDeviceBuffer = new StringBuffer();
 
         System.out.println("Scanning serial ports...");
@@ -462,6 +466,7 @@ public class synPOS {
     //                                            mobilePaymentState = 2;
     //                                            String[] s = inputLine.split("\\|");
     //                                            lastXippPaidAccountAddress = s[2];
+
                                             } else if (inputLine.equals("XIPP")){
                                                 serialPorts.add(port.getName());
                                                 xippDevice = ard;

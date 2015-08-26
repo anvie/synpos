@@ -266,6 +266,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         jTable2.setCellSelectionEnabled(true);
         TableExcelAdapter myAd1 = new TableExcelAdapter(jTable2);
         jTable2.addMouseListener(new TablePopupMenuMouseListener());
+
+
     }
 
     void jButton1_actionPerformed(ActionEvent e) {
@@ -311,7 +313,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     //@TODO(robin): fix this (don't hard code).
     private static String meAddress = "indomaret@superpay:/order/" + randInt(100, 9000);
 
-    void completeSale(Payment payment){
+    boolean completeSale(Payment payment){
         try {
             TableModel model = jTable2.getModel();
             int rowCount = model.getRowCount();
@@ -389,10 +391,22 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     System.out.println(content);
 
                     String response = HTTP.post("http://www.mega-pay.net/api/req_for_transfer",
-                            content, "json", null, null);
+                            content, "json", null, null).trim();
 
                     System.out.println("response from PS server: ");
                     System.out.println(response);
+
+                    if (response.equalsIgnoreCase("{\"status\": \"PAID\", \"error\": 0}")
+                        | response.equalsIgnoreCase("{\"status\":\"PAID\",\"error\":0}")){
+
+
+//                        JOptionPane.showMessageDialog(parent,
+//                                I18N.getMessageString("PAYMENT SUCCESS"),
+//                                I18N.getLabelString("SUCCESS"),
+//                                JOptionPane.INFORMATION_MESSAGE);
+
+                        return true;
+                    }
 
                 }
 
@@ -411,6 +425,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                           JOptionPane.ERROR_MESSAGE);
 
         }
+
+        return false;
     }
 
     void newSale() {
@@ -612,8 +628,9 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                         System.out.println("mobile payment timeout.");
                     }else if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_BEGIN || synPOS.mobilePaymentState == synPOS.paymentState.STATE_RECEIVING) {
                         msgDlg.setVisible(false);
+
                         final MessageDialog authDlg = new MessageDialog(parent, "Processing",
-                                "Waiting for authorization..");
+                                "Processing authorization...");
                     
                         new Thread() {
                             public void run() {
@@ -632,7 +649,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                 }
 
                                 if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END) {
-                                    authDlg.setVisible(false);
+
                                     synPOS.mobilePaymentState = synPOS.paymentState.STATE_IDLE;
 
                                     System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
@@ -640,7 +657,21 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                     MobilePayment mobilePayment = new MobilePayment(synPOS.lastXippPaidAccountAddress,
                                             totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp);
 
-                                    completeSale(mobilePayment);
+                                    if (completeSale(mobilePayment)){
+
+                                        authDlg.setTitle("SUCCESS");
+                                        authDlg.setIcon("images/button-check_green.png");
+                                        authDlg.textContent.setText("PAYMENT SUCCESS");
+
+                                        try {
+                                            Thread.sleep(4000);
+                                        } catch (InterruptedException e1) {
+                                            e1.printStackTrace();
+                                        }
+
+                                        authDlg.setVisible(false);
+
+                                    }
 
                                 }
 

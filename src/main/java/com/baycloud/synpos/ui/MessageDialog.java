@@ -36,23 +36,55 @@ public class MessageDialog extends JDialog {
     }
 
     private void jbInit() throws Exception {
-        jLabel1.setBorder(border1);
-        jLabel1.setHorizontalAlignment(SwingConstants.CENTER);
-        jLabel1.setText(msg);
-        setLayout(borderLayout1);
+//        ImageIcon image = new ImageIcon("images/button-check_green.png");
+//        imageContent.setIcon(image);
+
+//        JPanel lPanel = new JPanel();
+        BoxLayout layout = new BoxLayout(getContentPane(), BoxLayout.PAGE_AXIS);
+
+        textContent.setBorder(border1);
+        textContent.setHorizontalAlignment(SwingConstants.CENTER);
+        textContent.setText(msg);
+
+//        setLayout(layout);
+
         this.setDefaultCloseOperation(javax.swing.WindowConstants.
-                                      DISPOSE_ON_CLOSE);
-        setResizable(false);
+                DISPOSE_ON_CLOSE);
+//        setSize(new Dimension(400, 100));
+        setResizable(true);
         setModal(true);
         setTitle(title);
-        getContentPane().add(jLabel1, java.awt.BorderLayout.CENTER);
+
+        imageContent.setAlignmentX(Component.CENTER_ALIGNMENT);
+        textContent.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+//        getContentPane().add(imageContent, BorderLayout.CENTER);
+
+        getContentPane().add(imageContent);
+//        imageContent.setVisible(false);
+        getContentPane().add(textContent);
+
+        getContentPane().setLayout(layout);
+
+//        getContentPane().add(textContent, java.awt.BorderLayout.CENTER);
+
+        pack();
+
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
         Dimension pnlSize = getPreferredSize();
         setLocation((screenSize.width - pnlSize.width) / 2,
                     (screenSize.height - pnlSize.height) / 2);
     }
 
-    JLabel jLabel1 = new JLabel();
-    BorderLayout borderLayout1 = new BorderLayout();
+    void setIcon(String imagePath){
+        imageContent.setIcon(new ImageIcon(imagePath));
+        invalidate();
+        pack();
+    }
+
+    JLabel textContent = new JLabel();
+
+//    BorderLayout borderLayout1 = new BorderLayout();
+    JLabel imageContent = new JLabel(new ImageIcon("images/hand-phone-nfc.png"));
     Border border1 = BorderFactory.createEmptyBorder(20, 20, 20, 20);
 }
