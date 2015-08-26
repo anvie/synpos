@@ -313,8 +313,13 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     }
 
     //@TODO(robin): fix this (don't hard code).
-    private static String meAddress = "indomaret@superpay:/order/" + randInt(100, 9000);
+    private static String meAddress = "indomaret@superpay";
 
+
+    // @TODO(robin): gunakan incremental ID asli dari DB
+    private int generateTxCode(){
+        return randInt(1000, 99999);
+    }
 
     class CompleteSaleResult {
         private int errorCode;
@@ -404,11 +409,12 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     MobilePayment mobilePayment = (MobilePayment)payment;
 
 
+                    String dstAddress = meAddress + ":/order/" + mobilePayment.getCode();
 
                     String amountStr = String.format("%.02f", mobilePayment.getPaid());
 
                     String content = "{\"src\":\"" + mobilePayment.getFromAddress() +  "\"," +
-                            "\"dst\":\"" + meAddress + "\"," +
+                            "\"dst\":\"" + dstAddress + "\"," +
                             "\"amount\":" + amountStr + "," +
                             "\"ts\":" + mobilePayment.getTimestamp() + "," +
                             "\"key\":\"" + mobilePayment.getSignature() + "\"," +
@@ -637,15 +643,21 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
         synPOS.mobilePaymentState = synPOS.paymentState.STATE_INIT;
 
-        final MessageDialog msgDlg = new MessageDialog(parent, "Processing",
-                "Ask customer to put their mobile device into NFC terminal.");
+
+        final int txCode = generateTxCode();
+
+        final MessageDialog msgDlg = new MessageDialog(parent, "Processing tx #" + txCode,
+                "<html><center><h2>Transaction ID #" + txCode + "</h2><br/>" +
+                "Ask customer to put their mobile device into NFC terminal.</center></html>");
 
         new Thread() {
             public void run() {
                 try {
                     //completeSale(payment);
 
-                    String data = String.format("PP:%.02f|%s", totalPanel.getTotal(), meAddress.trim()).trim();
+                    String dstAddress = meAddress + ":/order/" + txCode;
+
+                    String data = String.format("PP:%.02f|%s", totalPanel.getTotal(), dstAddress).trim();
                     System.out.println("sending data: " + data.trim());
                     
                     synPOS.xippDevice.getOutputStream()
@@ -707,7 +719,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                         System.out.println("paid account: " + synPOS.lastXippPaidAccountAddress);
 
                                         MobilePayment mobilePayment = new MobilePayment(synPOS.lastXippPaidAccountAddress,
-                                                totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp);
+                                                totalPanel.getTotal(), synPOS.lastSignature, synPOS.lastTimestamp, txCode);
 
                                         CompleteSaleResult rv = completeSale(mobilePayment);
 

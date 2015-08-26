@@ -23,12 +23,14 @@ public class MobilePayment implements Payment {
     private double paid;
     private String signature;
     private long timestamp;
+    private int code;
 
-    public MobilePayment(String fromAddress, double paid, String signature, long timestamp) {
+    public MobilePayment(String fromAddress, double paid, String signature, long timestamp, int code) {
         this.fromAddress = fromAddress;
         this.paid = paid;
         this.signature = signature;
         this.timestamp = timestamp;
+        this.code = code;
     }
 
     public MobilePayment(int payId) {
@@ -84,5 +86,9 @@ public class MobilePayment implements Payment {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public int getCode() {
+        return code;
     }
 }
