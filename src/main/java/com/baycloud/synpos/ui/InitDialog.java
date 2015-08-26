@@ -32,7 +32,7 @@ public class InitDialog extends JDialog {
         jLabel1.setHorizontalAlignment(SwingConstants.CENTER);
         jLabel1.setText(I18N.getMessageString("Initializing ..."));
         setLayout(borderLayout1);
-        this.setDefaultCloseOperation(3);
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
         setTitle("synPOS");
         add(jLabel1, java.awt.BorderLayout.CENTER);
