@@ -308,7 +308,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
     // @TODO(robin): jangan taruh di sini
     public static int randInt(int min, int max) {
-        Random rand = new Random();
+        Random rand = new Random(System.currentTimeMillis());
         return rand.nextInt((max - min) + 1) + min;
     }
 
