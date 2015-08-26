@@ -417,7 +417,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                             "\"amount\":" + amountStr + "," +
                             "\"ts\":" + mobilePayment.getTimestamp() + "," +
                             "\"key\":\"" + mobilePayment.getSignature() + "\"," +
-                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " via Mobile NFC\"}";
+//                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " via Mobile NFC\"}";
+                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " to pay #" + mobilePayment.getCode() + " via Mobile NFC \"}";
 
                     System.out.println("data to send to server:");
                     System.out.println(content);
