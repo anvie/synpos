@@ -88,7 +88,7 @@ public class CashPaymentDlg extends JDialog {
             }
         });
         flowLayout4.setAlignment(FlowLayout.RIGHT);
-        flowLayout4.setHgap(0); //jTable2.setSelectionForeground(Color.white);
+        flowLayout4.setHgap(0); //itemToSellTable.setSelectionForeground(Color.white);
         component1 = Box.createHorizontalStrut(5);
         gridLayout2.setColumns(1);
         gridLayout2.setHgap(5);

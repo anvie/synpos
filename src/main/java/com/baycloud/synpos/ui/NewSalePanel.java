@@ -45,7 +45,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     BorderLayout borderLayout6 = new BorderLayout();
     JPanel jPanel1 = new JPanel();
     JLabel jLabel1 = new JLabel();
-    JTable jTable2 = new JTable(new SalesTableModel());
+    JTable itemToSellTable = new JTable(new SalesTableModel());
     JButton jButton1 = new JButton();
     //FlowLayout flowLayout1 = new FlowLayout();
     JTextField jTextField1 = new JTextField();
@@ -248,15 +248,15 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         jPanel2.add(jButton1);
         jPanel2.add(jButton14);
         jPanel2.add(jButton4);
-        jScrollPane1.getViewport().add(jTable2);
+        jScrollPane1.getViewport().add(itemToSellTable);
         this.add(jPanel11, BorderLayout.SOUTH);
         jPanel5.add(jButton3);
         jPanel5.add(jButton8);
         jPanel5.add(jButton7);
         jPanel5.add(jButtonMobilePay);
-        jTable2.getModel().addTableModelListener(this);
-        jTable2.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        jTable2.setCellSelectionEnabled(true);
+        itemToSellTable.getModel().addTableModelListener(this);
+        itemToSellTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        itemToSellTable.setCellSelectionEnabled(true);
         jPanel35.add(jScrollPane1, java.awt.BorderLayout.CENTER);
         this.add(jPanel35, java.awt.BorderLayout.CENTER);
         jPanel11.add(jPanel5, java.awt.BorderLayout.CENTER);
@@ -265,9 +265,9 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         jPanel1.add(jPanel3, java.awt.BorderLayout.EAST);
         jPanel1.add(jPanel2, java.awt.BorderLayout.WEST);
         jTextField1.requestFocusInWindow();
-        jTable2.setCellSelectionEnabled(true);
-        TableExcelAdapter myAd1 = new TableExcelAdapter(jTable2);
-        jTable2.addMouseListener(new TablePopupMenuMouseListener());
+        itemToSellTable.setCellSelectionEnabled(true);
+        TableExcelAdapter myAd1 = new TableExcelAdapter(itemToSellTable);
+        itemToSellTable.addMouseListener(new TablePopupMenuMouseListener());
 
 
     }
@@ -347,7 +347,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
     CompleteSaleResult completeSale(Payment payment){
         try {
-            TableModel model = jTable2.getModel();
+            TableModel model = itemToSellTable.getModel();
             int rowCount = model.getRowCount();
             OrderProduct[] products = new OrderProduct[rowCount];
 
@@ -372,7 +372,6 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                                             user.getId(), customer);
 
             if (order != null){
-                newSale();
 
                 if (payment.getPaymentType().equals("Cash")){
                     CDrawer.open();
@@ -418,7 +417,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                             "\"amount\":" + amountStr + "," +
                             "\"ts\":" + mobilePayment.getTimestamp() + "," +
                             "\"key\":\"" + mobilePayment.getSignature() + "\"," +
-                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " to pay #" + mobilePayment.getCode() + " via Mobile NFC \"}";
+                            "\"desc\":\"from " + mobilePayment.getFromAddress() + " via Mobile NFC\"}";
 
                     System.out.println("data to send to server:");
                     System.out.println(content);
@@ -432,6 +431,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                     if (response.equalsIgnoreCase("{\"status\": \"PAID\", \"error\": 0}")
                         | response.equalsIgnoreCase("{\"status\":\"PAID\",\"error\":0}")){
 
+                        // siapkan sesi penjualan baru
+                        newSale();
 
 //                        JOptionPane.showMessageDialog(parent,
 //                                I18N.getMessageString("PAYMENT SUCCESS"),
@@ -471,10 +472,13 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         return new CompleteSaleResult(500, "Internal error");
     }
 
+    /**
+     * Siapkan sesi penjualan baru.
+     */
     void newSale() {
-        SalesTableModel model = (SalesTableModel) jTable2.getModel();
+        SalesTableModel model = (SalesTableModel) itemToSellTable.getModel();
         model.removeAll();
-        jTable2.invalidate();
+        itemToSellTable.invalidate();
         customer = new Customer(0);
         jLabel3.setText(customer.getFirstName() + " " +
                         customer.getLastName());
@@ -526,7 +530,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
             return;
         }
 
-        SalesTableModel model = (SalesTableModel) jTable2.getModel();
+        SalesTableModel model = (SalesTableModel) itemToSellTable.getModel();
         int row = model.getProductRow(barcode);
 
         if (row >= 0) {
@@ -549,12 +553,12 @@ public class NewSalePanel extends JPanel implements TableModelListener {
             }
         }
 
-        jTable2.revalidate();
-        jTable2.repaint();
+        itemToSellTable.revalidate();
+        itemToSellTable.repaint();
     }
 
     void jButton4_actionPerformed(ActionEvent e) {
-        ListSelectionModel lsm = jTable2.getSelectionModel();
+        ListSelectionModel lsm = itemToSellTable.getSelectionModel();
         if (lsm.isSelectionEmpty()) {
             JOptionPane.showMessageDialog(parent,
                                           I18N.getMessageString(
@@ -574,29 +578,29 @@ public class NewSalePanel extends JPanel implements TableModelListener {
             }
 
             int selectedRow = lsm.getMinSelectionIndex();
-            SalesTableModel model = (SalesTableModel) jTable2.getModel();
+            SalesTableModel model = (SalesTableModel) itemToSellTable.getModel();
             model.removeRow(selectedRow);
-            jTable2.revalidate();
-            jTable2.repaint();
+            itemToSellTable.revalidate();
+            itemToSellTable.repaint();
         }
     }
 
     void jButton9_actionPerformed(ActionEvent e) {
-        ListSelectionModel lsm = jTable2.getSelectionModel();
+        ListSelectionModel lsm = itemToSellTable.getSelectionModel();
         if (lsm.isSelectionEmpty()) {
         } else {
             int selectedRow = lsm.getMinSelectionIndex();
             if (selectedRow >= 0) {
-                SalesTableModel model = (SalesTableModel) jTable2.getModel();
+                SalesTableModel model = (SalesTableModel) itemToSellTable.getModel();
                 model.setValueAt(new Double(0), selectedRow, 3);
-                jTable2.revalidate();
-                jTable2.repaint();
+                itemToSellTable.revalidate();
+                itemToSellTable.repaint();
             }
         }
     }
 
     public void jButton8_actionPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             JOptionPane.showMessageDialog(parent,
                                           I18N.getMessageString(
                                                   "No items purchased."),
@@ -621,7 +625,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     }
 
     public void jButtonMobilePaymentPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             JOptionPane.showMessageDialog(parent,
                     I18N.getMessageString(
                             "No items purchased."),
@@ -786,7 +790,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     }
 
     public void jButton7_actionPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             JOptionPane.showMessageDialog(parent,
                                           I18N.getMessageString(
                                                   "No items purchased."),
@@ -810,7 +814,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     }
 
     public void jButton14_actionPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             JOptionPane.showMessageDialog(parent,
                                           I18N.getMessageString(
                                                   "Please select an item to edit."),
@@ -820,8 +824,8 @@ public class NewSalePanel extends JPanel implements TableModelListener {
             return;
         }
 
-        int currentRow = jTable2.getSelectedRow();
-        int currentCol = jTable2.getSelectedColumn();
+        int currentRow = itemToSellTable.getSelectedRow();
+        int currentCol = itemToSellTable.getSelectedColumn();
 
         if (currentRow < 0) {
             currentRow = 0;
@@ -829,35 +833,35 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         if (currentCol < 0) {
             currentCol = 0;
         }
-        jTable2.changeSelection(currentRow, currentCol, false, false);
-        jTable2.requestFocus();
-        jTable2.revalidate();
-        jTable2.repaint();
+        itemToSellTable.changeSelection(currentRow, currentCol, false, false);
+        itemToSellTable.requestFocus();
+        itemToSellTable.revalidate();
+        itemToSellTable.repaint();
     }
 
     public void jButton15_actionPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             return;
         }
 
-        int currentRow = jTable2.getSelectedRow();
-        int currentCol = jTable2.getSelectedColumn();
+        int currentRow = itemToSellTable.getSelectedRow();
+        int currentCol = itemToSellTable.getSelectedColumn();
 
         currentRow++;
-        if (currentRow == jTable2.getRowCount()) {
+        if (currentRow == itemToSellTable.getRowCount()) {
             currentRow--;
         }
         if (currentCol < 0) {
             currentCol = 0;
         }
-        jTable2.changeSelection(currentRow, currentCol, false, false);
-        jTable2.revalidate();
-        jTable2.repaint();
+        itemToSellTable.changeSelection(currentRow, currentCol, false, false);
+        itemToSellTable.revalidate();
+        itemToSellTable.repaint();
     }
 
     public void jButton16_actionPerformed(ActionEvent e) {
-        int currentRow = jTable2.getSelectedRow();
-        int currentCol = jTable2.getSelectedColumn();
+        int currentRow = itemToSellTable.getSelectedRow();
+        int currentCol = itemToSellTable.getSelectedColumn();
 
         currentCol--;
         if (currentRow < 0) {
@@ -866,25 +870,25 @@ public class NewSalePanel extends JPanel implements TableModelListener {
         if (currentCol < 0) {
             currentCol = 0;
         }
-        jTable2.changeSelection(currentRow, currentCol, false, false);
-        jTable2.revalidate();
-        jTable2.repaint();
+        itemToSellTable.changeSelection(currentRow, currentCol, false, false);
+        itemToSellTable.revalidate();
+        itemToSellTable.repaint();
     }
 
     public void jButton17_actionPerformed(ActionEvent e) {
-        int currentRow = jTable2.getSelectedRow();
-        int currentCol = jTable2.getSelectedColumn();
+        int currentRow = itemToSellTable.getSelectedRow();
+        int currentCol = itemToSellTable.getSelectedColumn();
 
         currentCol++;
         if (currentRow < 0) {
             currentRow = 0;
         }
-        if (currentCol == jTable2.getColumnCount()) {
+        if (currentCol == itemToSellTable.getColumnCount()) {
             currentCol--;
         }
-        jTable2.changeSelection(currentRow, currentCol, false, false);
-        jTable2.revalidate();
-        jTable2.repaint();
+        itemToSellTable.changeSelection(currentRow, currentCol, false, false);
+        itemToSellTable.revalidate();
+        itemToSellTable.repaint();
     }
 
     public void jButton18_actionPerformed(ActionEvent e) {
@@ -892,7 +896,7 @@ public class NewSalePanel extends JPanel implements TableModelListener {
     }
 
     public void jButton3_actionPerformed(ActionEvent e) {
-        if (jTable2.getRowCount() == 0) {
+        if (itemToSellTable.getRowCount() == 0) {
             JOptionPane.showMessageDialog(parent,
                                           I18N.getMessageString(
                                                   "No items purchased."),

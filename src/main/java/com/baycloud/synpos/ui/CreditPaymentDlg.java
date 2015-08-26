@@ -316,7 +316,7 @@ public class CreditPaymentDlg extends JDialog {
     }
 
     public void jButton12_actionPerformed(ActionEvent e) {
-//  if (jTable2.getRowCount() == 0) {
+//  if (itemToSellTable.getRowCount() == 0) {
         //   return;
         // }
         if (jRadioButton2.isSelected()) {
