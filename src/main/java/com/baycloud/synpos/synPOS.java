@@ -456,17 +456,6 @@ public class synPOS {
                                                 }
 
 
-
-
-
-    //                                        }else if (inputLine.startsWith("SUCCESS")){
-    //                                            System.out.println("get paid ack.");
-    //                                            mobilePaymentState = 1;
-    //                                        }else if (inputLine.startsWith("DONE|")){
-    //                                            mobilePaymentState = 2;
-    //                                            String[] s = inputLine.split("\\|");
-    //                                            lastXippPaidAccountAddress = s[2];
-
                                             } else if (inputLine.equals("XIPP")){
                                                 serialPorts.add(port.getName());
                                                 xippDevice = ard;

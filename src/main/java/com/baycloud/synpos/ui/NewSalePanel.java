@@ -448,6 +448,9 @@ public class NewSalePanel extends JPanel implements TableModelListener {
 
                         if (matcher.find()){
                             return new CompleteSaleResult(502, matcher.group(1));
+                        }else{
+                            System.out.println("server response: " + response);
+                            return new CompleteSaleResult(502, "Invalid server response");
                         }
 
                     }
@@ -767,6 +770,18 @@ public class NewSalePanel extends JPanel implements TableModelListener {
                         authDlg.pack();
                         authDlg.setVisible(true);
                         
+                    } else if (synPOS.mobilePaymentState == synPOS.paymentState.STATE_END){
+                        msgDlg.setTitle("ERROR");
+                        msgDlg.textContent.setText("Device communication error, please try again.");
+                        msgDlg.setIcon("images/icon-warning.png");
+                        
+                        try {
+                            Thread.sleep(4000);
+                        } catch (InterruptedException e1) {
+                            e1.printStackTrace();
+                        }
+
+                        msgDlg.setVisible(false);
                     }
                     
                     
